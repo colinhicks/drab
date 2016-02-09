@@ -1,0 +1,22 @@
+{
+  "name": "drab",
+  "version": "0.0.1",
+  "description": "Alternative patterns for interacting with MSSQL via Node and Tedious",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "colin.hicks@gmail.com",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-polyfill": "^6.5.0",
+    "babel-preset-es2015": "^6.5.0",
+    "babel-preset-stage-3": "^6.5.0",
+    "babel-register": "^6.5.1",
+    "expect.js": "^0.3.1",
+    "mocha": "^2.4.5"
+  },
+  "peerDependencies": {
+    "tedious": "^1.13.2"
+  }
+}
