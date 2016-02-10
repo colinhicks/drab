@@ -6,11 +6,11 @@ describe('sql fn', function() {
   it('lifts a template string into an AST', function() {
     const statement = sql`select a from b where d = ${1}`;
 
-    expect(statement.sql).to.equal('select a from b where d = @v00');
+    expect(statement.sql).to.equal('select a from b where d = @$_0_0');
     expect(statement.parameters).to.be.an(Array);
 
     const [param1] = statement.parameters;    
-    expect(param1.name).to.equal('v00');
+    expect(param1.name).to.equal('$_0_0');
     expect(param1.val).to.equal(1);
   });
 
@@ -23,39 +23,39 @@ describe('sql fn', function() {
   it('handles multiple parameters', function() {
     const statement = sql`select a from b where d = ${1} and e = ${'f'}`;
 
-    expect(statement.sql).to.equal('select a from b where d = @v00 and e = @v10');
+    expect(statement.sql).to.equal('select a from b where d = @$_0_0 and e = @$_1_0');
 
     const [param1, param2] = statement.parameters;
-    expect(param1.name).to.equal('v00');
+    expect(param1.name).to.equal('$_0_0');
     expect(param1.val).to.equal(1);
-    expect(param2.name).to.equal('v10');
+    expect(param2.name).to.equal('$_1_0');
     expect(param2.val).to.equal('f');
   });
 
   it('expands array template values into multiple arguments', function() {
     const statement = sql`insert into a (b, c, d) values (${[1, 2, 3]})`;
 
-    expect(statement.sql).to.equal('insert into a (b, c, d) values (@v00, @v01, @v02)');
+    expect(statement.sql).to.equal('insert into a (b, c, d) values (@$_0_0, @$_0_1, @$_0_2)');
 
     const [param1, param2, param3] = statement.parameters;
-    expect(param1.name).to.equal('v00');
+    expect(param1.name).to.equal('$_0_0');
     expect(param1.val).to.equal(1);
-    expect(param2.name).to.equal('v01')
+    expect(param2.name).to.equal('$_0_1')
     expect(param2.val).to.equal(2);
-    expect(param3.name).to.equal('v02')
+    expect(param3.name).to.equal('$_0_2')
     expect(param3.val).to.equal(3);    
   });
 
   it('expands two-dimensional array template values into row value expression lists', function() {
     const statement = sql`insert into a (b, c) values ${[[1, 2], [3, 4]]}`;
 
-    expect(statement.sql).to.equal('insert into a (b, c) values (@v00, @v01), (@v02, @v03)');
+    expect(statement.sql).to.equal('insert into a (b, c) values (@$_0_0, @$_0_1), (@$_0_2, @$_0_3)');
   });
 
   it('handles single and multiple arg cases in same statement', function() {
     const statement = sql`insert into a (b, c) values ${[[1, 2], [3, 4]]} where d = ${3}`;
 
-    expect(statement.sql).to.equal('insert into a (b, c) values (@v00, @v01), (@v02, @v03) where d = @v10');
+    expect(statement.sql).to.equal('insert into a (b, c) values (@$_0_0, @$_0_1), (@$_0_2, @$_0_3) where d = @$_1_0');
   });
 });
 

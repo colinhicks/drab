@@ -11,7 +11,7 @@ function toParam(valObj, innerIdx, outerIdx) {
   const {type, val} = Object.hasOwnProperty.call(valObj || 0, 'type')
         ? valObj
         : {type: undefined, val: valObj};
-  return {name: `v${outerIdx}${innerIdx}`, type, val};
+  return {name: `$_${outerIdx}_${innerIdx}`, type, val};
 }
 
 export function ty(type, val) {
