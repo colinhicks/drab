@@ -64,14 +64,49 @@ export function sql(strings, ...values) {
 
 export function execSql(connection, statement) {
   return new Promise((resolve, reject) => {
-    const req = new Request(statement.sql, (err, results) => err
-                            ? reject(err)
-                            : resolve(results));
+    const req = new Request(
+      statement.sql,
+      (err, results) => err ? reject(err) : resolve(results));
 
     statement.parameters.forEach(({name, type, val}) => {
       req.addParameter(name, type, val);
     });
 
     connection.execSql.call(connection, req);
+  });
+}
+
+export function connect(options) {
+  return new Promise((resolve, reject) => {
+    const connection = new Connection(options);
+
+    connection.on(
+      'connect',
+      (err) => err ? reject(err) : resolve(connection));
+  });
+}
+
+export function transaction(connection, name='', isolationLevel) {
+  return new Promise((resolve, reject) => {
+    connection.transaction(
+      (err, done) => err ? resolve(done) : reject(err),
+      name,
+      isolationLevel);
+  });
+}
+
+export function startTransaction(connection, name='', isolationLevel) {
+  return new Promise((resolve, reject) => {
+    connection.beginTransaction(
+      (err) => err ? resolve() : reject(err),
+      name,
+      isolationLevel);
+  });
+}
+
+export function rollbackTransaction(connection) {
+  return new Promise((resolve, reject) => {
+    connection.rollbackTransaction(
+      (err) => err ? resolve() : reject(err));
   });
 }
