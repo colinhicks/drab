@@ -46,10 +46,16 @@ describe('sql fn', function() {
     expect(param3.val).to.equal(3);    
   });
 
-  it('handles single and multiple arg cases in same statement', function() {
-    const statement = sql`insert into a (b, c) values (${[1, 2]}) where d = ${3}`;
+  it('expands two-dimensional array template values into row value expression lists', function() {
+    const statement = sql`insert into a (b, c) values ${[[1, 2], [3, 4]]}`;
 
-    expect(statement.sql).to.equal('insert into a (b, c) values (@v00, @v01) where d = @v10');
+    expect(statement.sql).to.equal('insert into a (b, c) values (@v00, @v01), (@v02, @v03)');
+  });
+
+  it('handles single and multiple arg cases in same statement', function() {
+    const statement = sql`insert into a (b, c) values ${[[1, 2], [3, 4]]} where d = ${3}`;
+
+    expect(statement.sql).to.equal('insert into a (b, c) values (@v00, @v01), (@v02, @v03) where d = @v10');
   });
 });
 
