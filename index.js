@@ -1,4 +1,4 @@
-import {TYPES, Request} from 'tedious';
+import {TYPES, Request, Connection} from 'tedious';
 
 const zip2 = (xs, ys) => xs.map((x, idx) => [x, ys[idx]]);
 const coerceArray = (xs) => Array.isArray(xs) ? xs : [xs];
@@ -66,7 +66,7 @@ export function execSql(connection, statement) {
   return new Promise((resolve, reject) => {
     const req = new Request(
       statement.sql,
-      (err, results) => err ? reject(err) : resolve(results));
+      (err, totalCount, rows) => err ? reject(err) : resolve({totalCount, rows}));
 
     statement.parameters.forEach(({name, type, val}) => {
       req.addParameter(name, type, val);
