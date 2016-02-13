@@ -61,7 +61,7 @@ describe('sql fn', function() {
 
 describe('ty fn', function() {
   it('returns an object for the value and type', function() {
-    expect(ty(TYPES.Int, 1)).to.eql({type: TYPES.Int, val: 1});
+    expect(ty(TYPES.Int, 1)).to.eql({type: TYPES.Int, val: 1, options: undefined});
   });
 
   it('annotates the statement parameters', function() {
@@ -100,7 +100,7 @@ describe('execSql fn', function() {
 
   it('adds parameters to the underlying Request', function(done) {
     const connection = new mockConnection;
-    const statement = tsql`select a from b where c = ${ty(TYPES.Bit, true)}`;
+    const statement = tsql`select a from b where c = ${ty(TYPES.VarChar, 'foo', {length: 255})}`;
     const [param1] = statement.parameters;
     
     execSql(connection, statement)
@@ -109,6 +109,7 @@ describe('execSql fn', function() {
         expect(reqParam1).to.be.ok();
         expect(reqParam1.name).to.be(param1.name);
         expect(reqParam1.value).to.be(param1.val);
+        expect(reqParam1.length).to.be(param1.options.length);
         expect(reqParam1.type).to.eql(param1.type);
 
         done();

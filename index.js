@@ -8,14 +8,14 @@ const mapcat = (mapf, xs) => xs.reduce((ys, x) =>
                                        ys.concat(mapf(x)), []);
 
 function toParam(valObj, innerIdx, outerIdx) {
-  const {type, val} = Object.hasOwnProperty.call(valObj || 0, 'type')
+  const {type, val, options} = Object.hasOwnProperty.call(valObj || 0, 'type')
         ? valObj
         : {type: undefined, val: valObj};
-  return {name: `$_${outerIdx}_${innerIdx}`, type, val};
+  return {name: `$_${outerIdx}_${innerIdx}`, type, val, options};
 }
 
-export function ty(type, val) {
-  return {type, val};
+export function ty(type, val, options) {
+  return {type, val, options};
 };
 
 export function tsql(strings, ...values) {
@@ -68,8 +68,8 @@ export function execSql(connection, statement) {
       statement.sql,
       (err, totalCount, rows) => err ? reject(err) : resolve({totalCount, rows}));
 
-    statement.parameters.forEach(({name, type, val}) => {
-      req.addParameter(name, type, val);
+    statement.parameters.forEach(({name, type, val, options}) => {
+      req.addParameter(name, type, val, options);
     });
 
     connection.execSql.call(connection, req);
