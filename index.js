@@ -18,7 +18,7 @@ export function ty(type, val) {
   return {type, val};
 };
 
-export function sql(strings, ...values) {
+export function tsql(strings, ...values) {
   const ast = zip2(butLast(strings), values)
         .map(([str, value], outerIdx) => {          
           const groups = coerceArray(value)

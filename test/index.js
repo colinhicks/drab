@@ -1,10 +1,10 @@
 import expect from 'expect.js';
-import {sql, ty, execSql} from '../';
+import {tsql, ty, execSql} from '../';
 import {TYPES} from 'tedious';
 
 describe('sql fn', function() {
   it('lifts a template string into an AST', function() {
-    const statement = sql`select a from b where d = ${1}`;
+    const statement = tsql`select a from b where d = ${1}`;
 
     expect(statement.sql).to.equal('select a from b where d = @$_0_0');
     expect(statement.parameters).to.be.an(Array);
@@ -15,13 +15,13 @@ describe('sql fn', function() {
   });
 
   it('handles zero parameters', function() {
-    const statement = sql`select a from b where c = 1`;
+    const statement = tsql`select a from b where c = 1`;
 
     expect(statement.sql).to.equal('select a from b where c = 1');
   });
   
   it('handles multiple parameters', function() {
-    const statement = sql`select a from b where d = ${1} and e = ${'f'}`;
+    const statement = tsql`select a from b where d = ${1} and e = ${'f'}`;
 
     expect(statement.sql).to.equal('select a from b where d = @$_0_0 and e = @$_1_0');
 
@@ -33,7 +33,7 @@ describe('sql fn', function() {
   });
 
   it('expands array template values into multiple arguments', function() {
-    const statement = sql`insert into a (b, c, d) values (${[1, 2, 3]})`;
+    const statement = tsql`insert into a (b, c, d) values (${[1, 2, 3]})`;
 
     expect(statement.sql).to.equal('insert into a (b, c, d) values (@$_0_0, @$_0_1, @$_0_2)');
 
@@ -47,13 +47,13 @@ describe('sql fn', function() {
   });
 
   it('expands two-dimensional array template values into row value expression lists', function() {
-    const statement = sql`insert into a (b, c) values ${[[1, 2], [3, 4]]}`;
+    const statement = tsql`insert into a (b, c) values ${[[1, 2], [3, 4]]}`;
 
     expect(statement.sql).to.equal('insert into a (b, c) values (@$_0_0, @$_0_1), (@$_0_2, @$_0_3)');
   });
 
   it('handles single and multiple arg cases in same statement', function() {
-    const statement = sql`insert into a (b, c) values ${[[1, 2], [3, 4]]} where d = ${3}`;
+    const statement = tsql`insert into a (b, c) values ${[[1, 2], [3, 4]]} where d = ${3}`;
 
     expect(statement.sql).to.equal('insert into a (b, c) values (@$_0_0, @$_0_1), (@$_0_2, @$_0_3) where d = @$_1_0');
   });
@@ -65,7 +65,7 @@ describe('ty fn', function() {
   });
 
   it('annotates the statement parameters', function() {
-    const statement = sql`insert into a (b, c) values (${[
+    const statement = tsql`insert into a (b, c) values (${[
       ty(TYPES.Int, 1),
       ty(TYPES.Text, 'foo')
     ]})`;
@@ -92,7 +92,7 @@ describe('execSql fn', function() {
   }
   
   it('returns a promise given a connection and statement', function(done) {
-    const promise = execSql(new mockConnection, sql`select a from b`);
+    const promise = execSql(new mockConnection, tsql`select a from b`);
 
     expect(promise).to.be.a(Promise);
     promise.then(() => done());
@@ -100,7 +100,7 @@ describe('execSql fn', function() {
 
   it('adds parameters to the underlying Request', function(done) {
     const connection = new mockConnection;
-    const statement = sql`select a from b where c = ${ty(TYPES.Bit, true)}`;
+    const statement = tsql`select a from b where c = ${ty(TYPES.Bit, true)}`;
     const [param1] = statement.parameters;
     
     execSql(connection, statement)
@@ -119,7 +119,7 @@ describe('execSql fn', function() {
     const dummyResult = ['asdf'];
     
     try {
-      const {rows} = await execSql(new mockConnection(dummyResult), sql`select a from b`);
+      const {rows} = await execSql(new mockConnection(dummyResult), tsql`select a from b`);
       expect(rows).to.eql(dummyResult);
 
       done();
