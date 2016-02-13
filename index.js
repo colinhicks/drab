@@ -18,6 +18,17 @@ export function ty(type, val, options) {
   return {type, val, options};
 };
 
+export const tsqlTypes = Object.keys(TYPES)
+  .reduce((result, key) => {
+    result[key] = (val, options) => ({
+      type: TYPES[key],
+      val,
+      options,
+    });
+    
+    return result;
+  }, {});
+
 export function tsql(strings, ...values) {
   const ast = zip2(butLast(strings), values)
         .map(([str, value], outerIdx) => {          

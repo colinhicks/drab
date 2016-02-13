@@ -1,8 +1,8 @@
 import expect from 'expect.js';
-import {tsql, ty, execSql} from '../';
+import {tsql, tsqlTypes, execSql} from '../';
 import {TYPES} from 'tedious';
 
-describe('sql fn', function() {
+describe('tsql fn', function() {
   it('lifts a template string into an AST', function() {
     const statement = tsql`select a from b where d = ${1}`;
 
@@ -59,22 +59,43 @@ describe('sql fn', function() {
   });
 });
 
-describe('ty fn', function() {
-  it('returns an object for the value and type', function() {
-    expect(ty(TYPES.Int, 1)).to.eql({type: TYPES.Int, val: 1, options: undefined});
+describe('tsqlTypes hash', function() {
+  const objectValues = (obj) => Object.keys(obj).map((key) => obj[key]);
+  
+  it('provides functions wrapping types defined by tedious', function() {
+    expect(tsqlTypes).to.have.keys(Object.keys(TYPES));
+    objectValues(tsqlTypes).every((val) => expect(val).to.be.a(Function));
   });
 
-  it('annotates the statement parameters', function() {
-    const statement = tsql`insert into a (b, c) values (${[
-      ty(TYPES.Int, 1),
-      ty(TYPES.Text, 'foo')
-    ]})`;
+  describe('each type function', function() {
     
-    const [type1, type2] = statement.parameters.map(({type}) => type);
-    expect(type1).to.be(TYPES.Int);
-    expect(type2).to.be(TYPES.Text);
+    it('accepts a value, and returns an object annotating the value with the type', function() {      
+      const {VarChar} = tsqlTypes;
+      const annotation = VarChar('foo');
+      expect(annotation.val).to.be('foo');
+      expect(annotation.type).to.eql(TYPES.VarChar);
+    });
+
+    it('accepts an options object', function() {
+      const {VarChar} = tsqlTypes;
+      const annotation = VarChar('foo', {length: 255});
+      expect(annotation.options.length).to.be(255);
+    });
+
+    it('annotates the statement parameters', function() {
+      const {Int, Text} = tsqlTypes;
+      
+      const statement = tsql`insert into a (b, c) values (${[
+        Int(1),
+        Text('foo')
+      ]})`;
+
+      const [type1, type2] = statement.parameters.map(({type}) => type);
+      expect(type1).to.be(TYPES.Int);
+      expect(type2).to.be(TYPES.Text);
+    })
   });
-  
+   
 });
 
 describe('execSql fn', function() {
@@ -99,8 +120,9 @@ describe('execSql fn', function() {
   });
 
   it('adds parameters to the underlying Request', function(done) {
+    const {VarChar} = tsqlTypes;
     const connection = new mockConnection;
-    const statement = tsql`select a from b where c = ${ty(TYPES.VarChar, 'foo', {length: 255})}`;
+    const statement = tsql`select a from b where c = ${VarChar('foo', {length: 255})}`;
     const [param1] = statement.parameters;
     
     execSql(connection, statement)
