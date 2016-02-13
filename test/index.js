@@ -87,7 +87,7 @@ describe('execSql fn', function() {
 
     execSql(req) {
       this.req = req;
-      req.callback(null, this.provides);
+      req.callback(null, this.provides.length, this.provides);
     }
   }
   
@@ -116,11 +116,11 @@ describe('execSql fn', function() {
   });
 
   it('supports ES7 async/await', async function(done) {
-    const token = "asdf";
+    const dummyResult = ['asdf'];
     
     try {
-      const result = await execSql(new mockConnection(token), sql`select a from b`);
-      expect(result).to.be(token);
+      const {rows} = await execSql(new mockConnection(dummyResult), sql`select a from b`);
+      expect(rows).to.eql(dummyResult);
 
       done();
     } catch (err) {
