@@ -1,5 +1,5 @@
 import expect from 'expect.js';
-import {tsql, tsqlTypes, execSql} from '../';
+import {tsql, tsqlTypes, execSql, transaction} from '../';
 import {TYPES} from 'tedious';
 
 describe('tsql fn', function() {
@@ -150,4 +150,39 @@ describe('execSql fn', function() {
       done(err);
     }
   }); 
+});
+
+describe('transaction fn', function() {
+  class mockConnectionWithSuccessfulTransactionBegin {
+    transaction(fn) {
+      const done = (err, next, ...args) => next(...args);
+      process.nextTick(() => {
+        fn(null, done);
+      });
+    }
+  }
+  
+  it('provides promise semantics', function(done) {
+    const conn = new mockConnectionWithSuccessfulTransactionBegin;
+    const dummyResult = 'foo';
+    const work = () => Promise.resolve(dummyResult);
+    transaction(conn, work)
+      .then(
+        (result) => {
+          expect(result).to.be(dummyResult);
+          done();
+        }, (err => done(err)));
+  });
+  
+  it('requires a 2nd argument returning a thenable', function(done) {
+    const conn = new mockConnectionWithSuccessfulTransactionBegin;
+    const work = () => {};
+    transaction(conn, work)
+      .catch(
+        (err) => {
+          expect(err).to.be.a(TypeError);
+          done();
+        });
+  });
+  
 });

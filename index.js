@@ -97,14 +97,26 @@ export function connect(options) {
   });
 }
 
-export function transaction(connection, name='', isolationLevel) {
+export function transaction(connection, thenableFn, isolationLevel) {
   return new Promise((resolve, reject) => {
     connection.transaction(
-      (err, done) => err ? resolve(done) : reject(err),
-      name,
+      (err, done) => {
+        if(err) {
+          return reject(err);
+        }
+
+        const thenable = thenableFn();
+
+        if(!thenable || typeof thenable.then !== 'function') {
+          return reject(new TypeError('Parameter thenableFn must return a thenable.'));
+        }
+        
+        thenable.then((result) => done(null, resolve, result),
+                      (err) => done(err || null, reject, err)); 
+      },
       isolationLevel);
   });
-}
+}    
 
 export function startTransaction(connection, name='', isolationLevel) {
   return new Promise((resolve, reject) => {
